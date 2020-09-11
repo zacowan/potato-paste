@@ -5,7 +5,7 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom';
-import { Provider as BumbagProvider } from 'bumbag';
+import { Provider as BumbagProvider, ToastManager } from 'bumbag';
 import { useCookies } from 'react-cookie';
 
 // Pages
@@ -36,6 +36,7 @@ const App: FC = () => {
           </Switch>
         </Router>
       </div>
+      <ToastManager />
     </BumbagProvider>
   );
 };
