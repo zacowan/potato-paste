@@ -7,30 +7,31 @@ import {
 } from 'react-router-dom';
 import { Provider as BumbagProvider, ToastManager } from 'bumbag';
 import { useCookies } from 'react-cookie';
+import { POTATO_ID } from './utils/CookieTypes';
 
 // Pages
-import Pastes from './pages/Pastes';
-import Login from './pages/Login';
+import Potato from './pages/Potato';
+import Home from './pages/Home';
 
 const App: FC = () => {
-  const [cookies, setCookie, removeCookie] = useCookies(['uid']);
+  const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
 
   return (
     <BumbagProvider colorMode='dark'>
       <div style={{ minHeight: '100vh' }}>
         <Router>
           <Switch>
-            <Route path='/:uid/pastes'>
-              <Pastes />
+            <Route path='/potatoes/:potatoId'>
+              <Potato />
             </Route>
-            <Route path='/login'>
-              <Login />
+            <Route path='/home'>
+              <Home />
             </Route>
             <Route path='/'>
-              {!!cookies['uid'] ? (
-                <Redirect to={`/${cookies['uid']}/pastes`} />
+              {!!cookies[POTATO_ID] ? (
+                <Redirect to={`/potatoes/${cookies[POTATO_ID]}`} />
               ) : (
-                <Redirect to='/login' />
+                <Redirect to='/home' />
               )}
             </Route>
           </Switch>
