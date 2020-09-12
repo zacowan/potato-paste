@@ -12,25 +12,33 @@ import {
   Code,
   Divider,
   Link,
+  palette,
 } from 'bumbag';
+import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
+import moment from 'moment';
 import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
+import { Paste } from '../utils/PasteTypes';
 
 type PotatoParams = {
   potatoId: string;
 };
 
+const DateText = styled(Paragraph)`
+  color: #727d90;
+`;
+
 const Pastes: FC = () => {
   const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
-  const [pastes, setPastes] = useState<Array<string>>([]);
+  const [pastes, setPastes] = useState<Array<Paste>>([]);
   const [inputVal, setInputVal] = useState<string>('');
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
 
   useEffect(() => {
-    setPastes(generateNum());
+    setPastes([]);
   }, []);
 
   const handleInputSubmit = (e: React.FormEvent) => {
@@ -39,21 +47,18 @@ const Pastes: FC = () => {
   };
 
   const addPaste = () => {
-    setPastes([inputVal, ...pastes]);
+    const newPaste: Paste = {
+      id: (Math.random() + Date.now()).toString(),
+      value: inputVal,
+      createdAt: Date.now(),
+    };
+    setPastes([newPaste, ...pastes]);
     setInputVal('');
     document.getElementById('pastes-container')?.scrollTo({ top: 0 });
   };
 
-  const generateNum = () => {
-    let ret = [];
-    for (let i = 0; i < 10; i++) {
-      ret.push((i + 1).toString());
-    }
-    return ret;
-  };
-
-  const copyPaste = (index: number) => {
-    navigator.clipboard.writeText(pastes[index]);
+  const copyPaste = (paste: Paste) => {
+    navigator.clipboard.writeText(paste.value);
     toasts.success({
       showCountdown: false,
       title: 'Copied!',
@@ -61,8 +66,8 @@ const Pastes: FC = () => {
     });
   };
 
-  const selectInput = (id: string) => {
-    const input = document.getElementById(id)!;
+  const selectInput = (paste: Paste) => {
+    const input = document.getElementById(`${paste.id}-input`)!;
     input.focus();
     // @ts-ignore
     input.select();
@@ -110,23 +115,30 @@ const Pastes: FC = () => {
           id='pastes-container'
         >
           <Stack spacing='major-1'>
-            {pastes.map((paste, index) => (
-              <Card key={`${paste}-${index.toString()}`} title={paste}>
-                <Stack spacing='minor-2'>
-                  <Input
-                    id={`${paste}-${index.toString()}-input`}
-                    onClick={() =>
-                      selectInput(`${paste}-${index.toString()}-input`)
-                    }
-                    readOnly
-                    value={paste}
-                  />
-                  <Box alignX='right'>
-                    <Button onClick={() => copyPaste(index)}>Copy</Button>
-                  </Box>
-                </Stack>
-              </Card>
-            ))}
+            {pastes.length > 0 ? (
+              pastes.map((paste, index) => (
+                <Card key={paste.id}>
+                  <Stack spacing='minor-2'>
+                    <Input
+                      id={`${paste.id}-input`}
+                      onClick={() => selectInput(paste)}
+                      readOnly
+                      value={paste.value}
+                    />
+                    <Box alignX='right'>
+                      <Button onClick={() => copyPaste(paste)}>Copy</Button>
+                    </Box>
+                    <DateText>
+                      {moment(paste.createdAt).format('h:mm:ss a, MM/DD/YYYY')}
+                    </DateText>
+                  </Stack>
+                </Card>
+              ))
+            ) : (
+              <Paragraph style={{ paddingBottom: 5 }}>
+                There are no pastes on this potato yet.
+              </Paragraph>
+            )}
           </Stack>
         </Box>
       </Stack>
