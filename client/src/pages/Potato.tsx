@@ -11,7 +11,7 @@ import {
   useToasts,
   Code,
   Divider,
-  Flex,
+  Link,
 } from 'bumbag';
 import { useParams, useHistory } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
@@ -24,6 +24,7 @@ type PotatoParams = {
 const Pastes: FC = () => {
   const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
   const [pastes, setPastes] = useState<Array<string>>([]);
+  const [inputVal, setInputVal] = useState<string>('');
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
@@ -31,6 +32,17 @@ const Pastes: FC = () => {
   useEffect(() => {
     setPastes(generateNum());
   }, []);
+
+  const handleInputSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    addPaste();
+  };
+
+  const addPaste = () => {
+    setPastes([inputVal, ...pastes]);
+    setInputVal('');
+    document.getElementById('pastes-container')?.scrollTo({ top: 0 });
+  };
 
   const generateNum = () => {
     let ret = [];
@@ -68,29 +80,35 @@ const Pastes: FC = () => {
         position='relative'
         height='100%'
       >
+        <Link onClick={() => history.push('/home')}>Home</Link>
         <Box flexGrow={0} flexShrink={0} flexBasis='auto'>
           <Stack>
-            <Button
-              palette='primary'
-              variant='link'
-              onClick={() => history.push('/home')}
-            >
-              Go home
-            </Button>
             <Heading>Pastes</Heading>
             <Paragraph>
               Pastes for potato <Code>{potatoId}</Code>.
             </Paragraph>
-            <Stack spacing='minor-2'>
-              <Input placeholder='Text to paste...' />
+            <Stack use='form' onSubmit={handleInputSubmit} spacing='minor-2'>
+              <Input
+                value={inputVal}
+                onChange={(e) => setInputVal(e.currentTarget.value)}
+                placeholder='Text to paste...'
+              />
               <Box alignX='right'>
-                <Button palette='primary'>Paste</Button>
+                <Button type='submit' palette='primary'>
+                  Paste
+                </Button>
               </Box>
             </Stack>
             <Divider />
           </Stack>
         </Box>
-        <Box flexGrow={1} flexBasis='auto' overflowY='scroll'>
+        <Box
+          flexGrow={1}
+          flexBasis='auto'
+          overflowY='scroll'
+          scrollBehavior='smooth'
+          id='pastes-container'
+        >
           <Stack spacing='major-1'>
             {pastes.map((paste, index) => (
               <Card key={`${paste}-${index.toString()}`} title={paste}>
