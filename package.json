@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/zacowan/potato-paste#readme",
   "dependencies": {
+    "@fortawesome/free-regular-svg-icons": "^5.14.0",
+    "@fortawesome/free-solid-svg-icons": "^5.14.0",
     "concurrently": "^5.3.0"
   }
 }

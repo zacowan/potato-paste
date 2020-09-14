@@ -18,6 +18,7 @@ import {
   Modal,
   ActionButtons,
   Pagination,
+  Icon,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
@@ -28,6 +29,8 @@ import {
   POTATO_HISTORY,
   PotatoHistory,
   HISTORY_SIZE,
+  POTATO_FAVORITE,
+  FavoritePotato,
 } from '../utils/CookieTypes';
 import { Paste } from '../utils/PasteType';
 import { getPotato, getPastes, createPaste } from '../api';
@@ -47,12 +50,26 @@ const StyledPageContent = styled(PageContent)`
 `;
 
 const Pastes: FC = () => {
-  const [cookies, setCookie, removeCookie] = useCookies([POTATO_HISTORY]);
+  const [cookies, setCookie, removeCookie] = useCookies([
+    POTATO_HISTORY,
+    POTATO_FAVORITE,
+  ]);
   const [inputVal, setInputVal] = useState<string>('');
   const [currPage, setCurrPage] = useState(1);
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
+
+  const getFavoritePotato = () => {
+    if (cookies[POTATO_FAVORITE]) {
+      return cookies[POTATO_FAVORITE] as FavoritePotato;
+    } else {
+      return undefined;
+    }
+  };
+
+  // Cookie values
+  const favoritePotato = getFavoritePotato();
 
   // Queries
   const {
@@ -110,6 +127,29 @@ const Pastes: FC = () => {
       setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
     }
   }, [potatoData]);
+
+  const setFavoritePotato = () => {
+    if (favoritePotato && favoritePotato.id !== potatoId) {
+      removeCookie(POTATO_FAVORITE);
+      const newFavorite: FavoritePotato = {
+        id: potatoId,
+        link: window.location.href,
+        nickname: potatoData?.nickname ?? 'Potato',
+        visitedOn: Date.now(),
+      };
+      setCookie(POTATO_FAVORITE, newFavorite, { maxAge: COOKIE_AGE });
+    } else if (favoritePotato) {
+      removeCookie(POTATO_FAVORITE);
+    } else {
+      const newFavorite: FavoritePotato = {
+        id: potatoId,
+        link: window.location.href,
+        nickname: potatoData?.nickname ?? 'Potato',
+        visitedOn: Date.now(),
+      };
+      setCookie(POTATO_FAVORITE, newFavorite, { maxAge: COOKIE_AGE });
+    }
+  };
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -188,7 +228,25 @@ const Pastes: FC = () => {
         position='relative'
         height='100%'
       >
-        <Link onClick={() => history.push('/home')}>Home</Link>
+        <Stack orientation='horizontal'>
+          <Link alignY='center' onClick={() => history.push('/home')}>
+            Home
+          </Link>
+          <Box alignX='right' alignY='center'>
+            <Button
+              iconAfterProps={{ color: '#ff4f4f' }}
+              iconAfter={
+                favoritePotato?.id === potatoId
+                  ? 'solid-heart'
+                  : 'regular-heart'
+              }
+              variant='ghost'
+              onClick={setFavoritePotato}
+            >
+              {favoritePotato?.id === potatoId ? 'Favorited' : 'Favorite'}
+            </Button>
+          </Box>
+        </Stack>
         <Box flexGrow={0} flexShrink={0} flexBasis='auto'>
           <Stack>
             <Heading>Pastes</Heading>

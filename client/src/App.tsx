@@ -5,10 +5,14 @@ import {
   Route,
   Redirect,
 } from 'react-router-dom';
-import { Provider as BumbagProvider, ToastManager } from 'bumbag';
-import { useCookies } from 'react-cookie';
+import { Provider as BumbagProvider, ToastManager, ThemeConfig } from 'bumbag';
 import { ReactQueryConfigProvider, ReactQueryConfig } from 'react-query';
-import { POTATO_ID } from './utils/CookieTypes';
+// Icons
+import {
+  faHeart as fasHeart,
+  faClipboard,
+} from '@fortawesome/free-solid-svg-icons';
+import { faHeart as farHeart } from '@fortawesome/free-regular-svg-icons';
 
 // Pages
 import Potato from './pages/Potato';
@@ -20,12 +24,27 @@ const queryConfig: ReactQueryConfig = {
   },
 };
 
-const App: FC = () => {
-  const [cookies] = useCookies([POTATO_ID]);
+const themeConfig: ThemeConfig = {
+  Icon: {
+    iconSets: [
+      {
+        icons: [fasHeart, faClipboard],
+        prefix: 'solid-',
+        type: 'font-awesome',
+      },
+      {
+        icons: [farHeart],
+        prefix: 'regular-',
+        type: 'font-awesome',
+      },
+    ],
+  },
+};
 
+const App: FC = () => {
   return (
     <ReactQueryConfigProvider config={queryConfig}>
-      <BumbagProvider colorMode='dark'>
+      <BumbagProvider theme={themeConfig} colorMode='dark'>
         <div style={{ height: '100%' }}>
           <Router>
             <Switch>
@@ -36,11 +55,7 @@ const App: FC = () => {
                 <Home />
               </Route>
               <Route path='/'>
-                {!!cookies[POTATO_ID] ? (
-                  <Redirect to={`/potatoes/${cookies[POTATO_ID]}`} />
-                ) : (
-                  <Redirect to='/home' />
-                )}
+                <Redirect to='/home' />
               </Route>
             </Switch>
           </Router>
