@@ -18,6 +18,7 @@ import {
   Modal,
   ActionButtons,
   Pagination,
+  Columns,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory, Link } from 'react-router-dom';
@@ -229,13 +230,13 @@ const Pastes: FC = () => {
         position='relative'
         height='100%'
       >
-        <Stack orientation='horizontal'>
-          <Box alignX='left' alignY='center'>
+        <Columns minBreakpoint='mobile' alignY='center'>
+          <Columns.Column spread={6} alignX='left'>
             <Link {...linkProps} to='/home'>
               Home
             </Link>
-          </Box>
-          <Box alignX='right' alignY='center'>
+          </Columns.Column>
+          <Columns.Column spread={6} alignX='right'>
             <Button
               iconAfterProps={{ color: '#ff4f4f' }}
               iconAfter={
@@ -248,8 +249,9 @@ const Pastes: FC = () => {
             >
               {favoritePotato?.id === potatoId ? 'Favorited' : 'Favorite'}
             </Button>
-          </Box>
-        </Stack>
+          </Columns.Column>
+        </Columns>
+
         <Box flexGrow={0} flexShrink={0} flexBasis='auto'>
           <Stack>
             <Heading>Pastes</Heading>

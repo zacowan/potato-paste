@@ -87,7 +87,7 @@ const Login: FC = () => {
         {favoritePotato ? (
           <Card title={favoritePotato.nickname} key={favoritePotato.id}>
             <Stack spacing='major-2'>
-              <Box>
+              <Box textOverflow='ellipsis' overflowX='hidden'>
                 <Link {...linkProps} to={`/potatoes/${favoritePotato.id}`}>
                   {favoritePotato.link}
                 </Link>
@@ -109,7 +109,7 @@ const Login: FC = () => {
             {potatoHistory.map((hist) => (
               <Card title={hist.nickname} key={hist.id}>
                 <Stack spacing='major-2'>
-                  <Box>
+                  <Box textOverflow='ellipsis' overflowX='hidden'>
                     <Link {...linkProps} to={`/potatoes/${hist.id}`}>
                       {hist.link}
                     </Link>
