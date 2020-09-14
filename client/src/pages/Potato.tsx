@@ -12,7 +12,7 @@ import {
   useToasts,
   Code,
   Divider,
-  Link,
+  Link as BumbagLink,
   Spinner,
   Dialog,
   Modal,
@@ -20,7 +20,7 @@ import {
   Pagination,
 } from 'bumbag';
 import styled from 'styled-components';
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useHistory, Link } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import moment from 'moment';
 import {
@@ -58,6 +58,7 @@ const Pastes: FC = () => {
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
+  const linkProps = BumbagLink.useProps();
 
   const getFavoritePotato = () => {
     if (cookies[POTATO_FAVORITE]) {
@@ -229,9 +230,11 @@ const Pastes: FC = () => {
         height='100%'
       >
         <Stack orientation='horizontal'>
-          <Link alignY='center' onClick={() => history.push('/home')}>
-            Home
-          </Link>
+          <Box alignX='left' alignY='center'>
+            <Link {...linkProps} to='/home'>
+              Home
+            </Link>
+          </Box>
           <Box alignX='right' alignY='center'>
             <Button
               iconAfterProps={{ color: '#ff4f4f' }}
