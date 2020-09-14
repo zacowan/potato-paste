@@ -10,6 +10,5 @@ export const createPotato = async (nickname: string) => {
   const res = await axios.post<CreatePotatoResponse>(`${API_URL}/potatoes`, {
     nickname,
   });
-  console.log(res);
   return res.data;
 };

@@ -1,5 +1,5 @@
-import React, { FC, useState, useEffect } from 'react';
-import { useQuery } from 'react-query';
+import React, { FC, useState } from 'react';
+import { useQuery, useMutation, queryCache } from 'react-query';
 import {
   PageContent,
   Stack,
@@ -14,14 +14,17 @@ import {
   Divider,
   Link,
   Spinner,
+  Dialog,
+  Modal,
+  ActionButtons,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import moment from 'moment';
 import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
-import { Paste } from '../utils/PasteTypes';
-import { getPotato } from '../api';
+import { Paste } from '../utils/PasteType';
+import { getPotato, getPastes, createPaste } from '../api';
 
 type PotatoParams = {
   potatoId: string;
@@ -33,16 +36,27 @@ const DateText = styled(Paragraph)`
 
 const Pastes: FC = () => {
   const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
-  const [pastes, setPastes] = useState<Array<Paste>>([]);
   const [inputVal, setInputVal] = useState<string>('');
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
 
   // Queries
-  const { data: potatoData, isLoading: isLoadingPotato } = useQuery(
-    ['potato', potatoId],
-    getPotato
+  const {
+    data: potatoData,
+    isLoading: isLoadingPotato,
+    isError: isErrorPotato,
+    refetch: refetchPotato,
+  } = useQuery(['potato', potatoId], getPotato);
+  const {
+    data: pastes,
+    isLoading: isLoadingPastes,
+    isError: isErrorPastes,
+    refetch: refetchPastes,
+  } = useQuery(['pastes', potatoId], getPastes);
+  const [mutatePaste, { isLoading: isCreatingPaste }] = useMutation(
+    createPaste,
+    { onSuccess: () => queryCache.invalidateQueries('pastes') }
   );
 
   const handleInputSubmit = (e: React.FormEvent) => {
@@ -50,13 +64,8 @@ const Pastes: FC = () => {
     addPaste();
   };
 
-  const addPaste = () => {
-    const newPaste: Paste = {
-      id: (Math.random() + Date.now()).toString(),
-      value: inputVal,
-      createdAt: Date.now(),
-    };
-    setPastes([newPaste, ...pastes]);
+  const addPaste = async () => {
+    await mutatePaste({ potatoId, value: inputVal });
     setInputVal('');
     document.getElementById('pastes-container')?.scrollTo({ top: 0 });
   };
@@ -81,10 +90,44 @@ const Pastes: FC = () => {
     setCookie(POTATO_ID, potatoId, { maxAge: COOKIE_AGE });
   }
 
-  if (isLoadingPotato) {
+  if (isLoadingPotato || isLoadingPastes) {
     return (
       <PageContent>
         <Spinner alignX='center' size='large' />
+      </PageContent>
+    );
+  }
+
+  if (isErrorPotato || isErrorPastes) {
+    return (
+      <PageContent>
+        <Modal.State visible={true}>
+          <Dialog.Modal
+            baseId='modal'
+            variant='alert'
+            type='danger'
+            title='Error: failed to load potato'
+            hideOnClickOutside={false}
+            hideOnEsc={false}
+            hasScroll={false}
+            footer={
+              <ActionButtons
+                width='100%'
+                alignX='right'
+                cancelText='Go Home'
+                submitText='Retry'
+                onClickCancel={() => history.push('/home')}
+                onClickSubmit={() => {
+                  refetchPotato();
+                  refetchPastes();
+                }}
+              />
+            }
+          >
+            An expected error has occurred. Please try loading the potato again.
+            If this does not fix the issue, please try generating a new potato.
+          </Dialog.Modal>
+        </Modal.State>
       </PageContent>
     );
   }
@@ -115,7 +158,11 @@ const Pastes: FC = () => {
                 placeholder='Text to paste...'
               />
               <Box alignX='right'>
-                <Button type='submit' palette='primary'>
+                <Button
+                  isLoading={isCreatingPaste}
+                  type='submit'
+                  palette='primary'
+                >
                   Paste
                 </Button>
               </Box>
@@ -126,12 +173,12 @@ const Pastes: FC = () => {
         <Box
           flexGrow={1}
           flexBasis='auto'
-          overflowY='scroll'
+          overflowY='auto'
           scrollBehavior='smooth'
           id='pastes-container'
         >
           <Stack spacing='major-1'>
-            {pastes.length > 0 ? (
+            {pastes !== undefined && pastes.length > 0 ? (
               pastes.map((paste, index) => (
                 <Card key={paste.id}>
                   <Stack spacing='minor-2'>
@@ -151,7 +198,7 @@ const Pastes: FC = () => {
                 </Card>
               ))
             ) : (
-              <Paragraph style={{ paddingBottom: 5 }}>
+              <Paragraph style={{ paddingBottom: 5, paddingTop: 5 }}>
                 There are no pastes on this potato yet.
               </Paragraph>
             )}

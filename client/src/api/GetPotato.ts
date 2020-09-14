@@ -8,6 +8,5 @@ export type GetPotatoResponse = {
 
 export const getPotato = async (key: string, id: string) => {
   const res = await axios.get<GetPotatoResponse>(`${API_URL}/potatoes/${id}`);
-  console.log(res);
   return res.data;
 };
