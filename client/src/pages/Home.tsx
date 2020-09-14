@@ -31,7 +31,7 @@ const DateText = styled(Paragraph)`
 const Login: FC = () => {
   const [generatePotato, { isLoading }] = useMutation(createPotato);
   const [nickname, setNickname] = useState<string>('');
-  const [cookies, setCookie] = useCookies([POTATO_FAVORITE, POTATO_HISTORY]);
+  const [cookies] = useCookies([POTATO_FAVORITE, POTATO_HISTORY]);
   const history = useHistory();
   const linkProps = BumbagLink.useProps();
 

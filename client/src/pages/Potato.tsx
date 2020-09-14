@@ -18,7 +18,6 @@ import {
   Modal,
   ActionButtons,
   Pagination,
-  Icon,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
@@ -126,6 +125,7 @@ const Pastes: FC = () => {
       });
       setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
     }
+    // eslint-disable-next-line
   }, [potatoData]);
 
   const setFavoritePotato = () => {
