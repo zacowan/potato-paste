@@ -298,7 +298,12 @@ const Pastes: FC = () => {
                       value={paste.value}
                     />
                     <Box alignX='right'>
-                      <Button onClick={() => copyPaste(paste)}>Copy</Button>
+                      <Button
+                        iconAfter='solid-clipboard'
+                        onClick={() => copyPaste(paste)}
+                      >
+                        Copy
+                      </Button>
                     </Box>
                     <DateText>
                       {moment(paste.createdAt).format('h:mm:ss a, MM/DD/YYYY')}
