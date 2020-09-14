@@ -25,7 +25,7 @@ const StyledPageContent = styled(PageContent)`
 const Login: FC = () => {
   const [generatePotato, { isLoading }] = useMutation(createPotato);
   const [nickname, setNickname] = useState<string>('');
-  const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
+  const [, setCookie] = useCookies([POTATO_ID]);
   const history = useHistory();
 
   const handleSubmit = async (e: React.FormEvent) => {

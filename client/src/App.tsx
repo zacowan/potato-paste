@@ -14,7 +14,7 @@ import Potato from './pages/Potato';
 import Home from './pages/Home';
 
 const App: FC = () => {
-  const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
+  const [cookies] = useCookies([POTATO_ID]);
 
   return (
     <BumbagProvider colorMode='dark'>

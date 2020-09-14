@@ -35,7 +35,7 @@ const DateText = styled(Paragraph)`
 `;
 
 const Pastes: FC = () => {
-  const [cookies, setCookie, removeCookie] = useCookies([POTATO_ID]);
+  const [cookies, setCookie] = useCookies([POTATO_ID]);
   const [inputVal, setInputVal] = useState<string>('');
   const toasts = useToasts();
   const history = useHistory();
