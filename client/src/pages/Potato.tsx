@@ -1,4 +1,4 @@
-import React, { FC, useState } from 'react';
+import React, { FC, useState, useEffect } from 'react';
 import { useQuery, useMutation, queryCache } from 'react-query';
 import {
   PageContent,
@@ -23,7 +23,12 @@ import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
 import moment from 'moment';
-import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
+import {
+  COOKIE_AGE,
+  POTATO_HISTORY,
+  PotatoHistory,
+  HISTORY_SIZE,
+} from '../utils/CookieTypes';
 import { Paste } from '../utils/PasteType';
 import { getPotato, getPastes, createPaste } from '../api';
 import { PAGE_SIZE } from '../api/utils';
@@ -36,8 +41,13 @@ const DateText = styled(Paragraph)`
   color: #727d90;
 `;
 
+const StyledPageContent = styled(PageContent)`
+  position: relative;
+  height: 100%;
+`;
+
 const Pastes: FC = () => {
-  const [cookies, setCookie] = useCookies([POTATO_ID]);
+  const [cookies, setCookie, removeCookie] = useCookies([POTATO_HISTORY]);
   const [inputVal, setInputVal] = useState<string>('');
   const [currPage, setCurrPage] = useState(1);
   const toasts = useToasts();
@@ -61,6 +71,45 @@ const Pastes: FC = () => {
     createPaste,
     { onSuccess: () => queryCache.invalidateQueries('pastes') }
   );
+
+  useEffect(() => {
+    if (cookies[POTATO_HISTORY]) {
+      const currHistory = cookies[POTATO_HISTORY] as PotatoHistory;
+      const newHistory = [...currHistory];
+      // Check if already in the array
+      let removedDuplicate = false;
+      for (let i = 0; i < newHistory.length; i++) {
+        if (newHistory[i]['id'] === potatoId) {
+          newHistory.splice(i, 1);
+          removedDuplicate = true;
+        }
+      }
+      // Remove oldest item
+      if (newHistory.length >= HISTORY_SIZE && !removedDuplicate) {
+        newHistory.splice(0, 1);
+      }
+      // Add new item to front
+      newHistory.push({
+        id: potatoId,
+        visitedOn: Date.now(),
+        link: window.location.href,
+        nickname: potatoData?.nickname ?? 'Potato',
+      });
+      removeCookie(POTATO_HISTORY);
+      setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
+    } else {
+      // Create empty history
+      const newHistory: PotatoHistory = [];
+      // Add new item to front
+      newHistory.push({
+        id: potatoId,
+        visitedOn: Date.now(),
+        link: window.location.href,
+        nickname: potatoData?.nickname ?? 'Potato',
+      });
+      setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
+    }
+  }, [potatoData]);
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,21 +138,17 @@ const Pastes: FC = () => {
     input.select();
   };
 
-  if (cookies[POTATO_ID] !== potatoId) {
-    setCookie(POTATO_ID, potatoId, { maxAge: COOKIE_AGE });
-  }
-
   if (isLoadingPotato || isLoadingPastes) {
     return (
-      <PageContent>
+      <StyledPageContent>
         <Spinner alignX='center' size='large' />
-      </PageContent>
+      </StyledPageContent>
     );
   }
 
   if (isErrorPotato || isErrorPastes) {
     return (
-      <PageContent>
+      <StyledPageContent>
         <Modal.State visible={true}>
           <Dialog.Modal
             baseId='modal'
@@ -131,12 +176,12 @@ const Pastes: FC = () => {
             If this does not fix the issue, please try generating a new potato.
           </Dialog.Modal>
         </Modal.State>
-      </PageContent>
+      </StyledPageContent>
     );
   }
 
   return (
-    <PageContent height='100vh'>
+    <StyledPageContent>
       <Stack
         display='flex'
         flexDirection='column'
@@ -173,17 +218,16 @@ const Pastes: FC = () => {
             <Divider />
           </Stack>
         </Box>
-        <Box
-          flexGrow={1}
-          flexBasis='auto'
-          overflowY={
-            pastesData?.pastes !== undefined && pastesData.pastes.length > 0
-              ? 'auto'
-              : 'hidden'
-          }
-          scrollBehavior='smooth'
-          id='pastes-container'
-        >
+        {pastesData && pastesData.numPastes > 0 && (
+          <Pagination
+            alignX='center'
+            alignY='center'
+            currentPage={currPage}
+            onChangePage={(page) => setCurrPage(page)}
+            numberOfPages={Math.ceil(pastesData?.numPastes / PAGE_SIZE)}
+          />
+        )}
+        <Box flexGrow={1} flexBasis='auto' id='pastes-container'>
           <Stack spacing='major-1'>
             {pastesData && pastesData.numPastes > 0 ? (
               pastesData.pastes.map((paste, index) => (
@@ -221,7 +265,7 @@ const Pastes: FC = () => {
           />
         )}
       </Stack>
-    </PageContent>
+    </StyledPageContent>
   );
 };
 

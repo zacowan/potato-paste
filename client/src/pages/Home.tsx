@@ -2,31 +2,38 @@ import React, { FC, useState } from 'react';
 import { useMutation } from 'react-query';
 import {
   PageContent,
-  styled,
   Button,
   Stack,
   Box,
   Input,
   Heading,
   Paragraph,
+  Divider,
+  Card,
+  Link as BumbagLink,
 } from 'bumbag';
-import { useHistory } from 'react-router-dom';
+import styled from 'styled-components';
+import moment from 'moment';
+import { useHistory, Link } from 'react-router-dom';
 import { useCookies } from 'react-cookie';
-import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
+import {
+  COOKIE_AGE,
+  POTATO_ID,
+  POTATO_HISTORY,
+  PotatoHistory,
+} from '../utils/CookieTypes';
 import { createPotato } from '../api';
 
-const StyledPageContent = styled(PageContent)`
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+const DateText = styled(Paragraph)`
+  color: #727d90;
 `;
 
 const Login: FC = () => {
   const [generatePotato, { isLoading }] = useMutation(createPotato);
   const [nickname, setNickname] = useState<string>('');
-  const [, setCookie] = useCookies([POTATO_ID]);
+  const [cookies, setCookie] = useCookies([POTATO_ID, POTATO_HISTORY]);
   const history = useHistory();
+  const linkProps = BumbagLink.useProps();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,13 +44,13 @@ const Login: FC = () => {
 
   return (
     <PageContent>
-      <Heading>Potato Paste</Heading>
-      <Paragraph>
-        Potatoes are places where you can save your clipboard and share it with
-        your friends. To get started, simply generate your unique potato!
-      </Paragraph>
-      <StyledPageContent>
-        <Stack use='form' onSubmit={handleSubmit}>
+      <Stack>
+        <Heading>Potato Paste</Heading>
+        <Paragraph>
+          Potatoes are places where you can save your clipboard and share it
+          with your friends. To get started, simply generate your unique potato!
+        </Paragraph>
+        <Stack spacing='minor-2' use='form' onSubmit={handleSubmit}>
           <Input
             value={nickname}
             onChange={(e) => setNickname(e.currentTarget.value)}
@@ -55,7 +62,33 @@ const Login: FC = () => {
             </Button>
           </Box>
         </Stack>
-      </StyledPageContent>
+        <Divider />
+        <Heading use='h2'>Recently Visited</Heading>
+        {cookies[POTATO_HISTORY] ? (
+          <Stack spacing='major-1'>
+            {[...(cookies[POTATO_HISTORY] as PotatoHistory)]
+              .sort((a, b) => b.visitedOn - a.visitedOn)
+              .map((hist) => (
+                <Card title={hist.nickname} key={hist.id}>
+                  <Stack spacing='major-2'>
+                    <Box>
+                      <Link {...linkProps} to={`/potatoes/${hist.id}`}>
+                        {hist.link}
+                      </Link>
+                    </Box>
+                    <DateText>
+                      {moment(hist.visitedOn).format('h:mm a, MM/DD/YYYY')}
+                    </DateText>
+                  </Stack>
+                </Card>
+              ))}
+          </Stack>
+        ) : (
+          <Paragraph>
+            Looks like you have not visited any potatoes recently.
+          </Paragraph>
+        )}
+      </Stack>
     </PageContent>
   );
 };
