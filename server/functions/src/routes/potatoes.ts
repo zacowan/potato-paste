@@ -11,8 +11,13 @@ router.post('/', async (req, res) => {
   try {
     const nickname = req.body.nickname;
 
-    const newPotato: { createdAt: number; nickname?: string } = {
+    const newPotato: {
+      createdAt: number;
+      nickname?: string;
+      numPastes: number;
+    } = {
       createdAt: Date.now(),
+      numPastes: 0,
     };
 
     if (!!nickname) {
@@ -61,22 +66,31 @@ router.get('/:id', async (req, res) => {
 router.get('/:id/pastes', async (req, res) => {
   try {
     const id = req.params.id.toString();
+    const pageSize = Number(req.query.pageSize);
+    const currentPage = Number(req.query.currPage);
 
-    if (!!!id) {
+    if (!!!id || pageSize === undefined || currentPage === undefined) {
       res.status(400).json({ message: 'Request body is invalid.' });
     }
 
+    const cursor = pageSize * (currentPage - 1);
+
+    // Fetch paginated pastes
     const snap = await db
       .collection('potatoes')
       .doc(id)
       .collection('pastes')
       .orderBy('createdAt', 'desc')
+      .offset(cursor)
+      .limit(pageSize)
       .get();
+    // Fetch total number of pastes
+    const meta = await db.collection('potatoes').doc(id).get();
 
-    const ret: any[] = [];
-    snap.forEach((doc) => ret.push({ ...doc.data(), id: doc.id }));
+    const pastes: any[] = [];
+    snap.forEach((doc) => pastes.push({ ...doc.data(), id: doc.id }));
 
-    res.json(ret);
+    res.json({ numPastes: meta.data()?.numPastes, pastes });
   } catch (error) {
     res.status(500).json({
       message: 'An unexpected error has occurred.',
@@ -94,6 +108,7 @@ router.post('/:id/pastes', async (req, res) => {
       res.status(400).json({ message: 'Request body is invalid.' });
     }
 
+    // Create the paste
     const doc = await db
       .collection('potatoes')
       .doc(potatoId)
@@ -101,6 +116,13 @@ router.post('/:id/pastes', async (req, res) => {
       .add({
         ...pasteData,
         createdAt: Date.now(),
+      });
+    // Update the total number of pastes
+    await db
+      .collection('potatoes')
+      .doc(potatoId)
+      .update({
+        numPastes: admin.firestore.FieldValue.increment(1),
       });
 
     res.status(200).json({

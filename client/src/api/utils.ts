@@ -3,3 +3,5 @@ const PROD_API_URL = 'https://us-central1-potato-paste.cloudfunctions.net/api';
 
 export const API_URL =
   process.env.NODE_ENV === 'development' ? DEV_API_URL : PROD_API_URL;
+
+export const PAGE_SIZE = 20;

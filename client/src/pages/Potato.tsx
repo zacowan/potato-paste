@@ -17,6 +17,7 @@ import {
   Dialog,
   Modal,
   ActionButtons,
+  Pagination,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
@@ -25,6 +26,7 @@ import moment from 'moment';
 import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
 import { Paste } from '../utils/PasteType';
 import { getPotato, getPastes, createPaste } from '../api';
+import { PAGE_SIZE } from '../api/utils';
 
 type PotatoParams = {
   potatoId: string;
@@ -37,6 +39,7 @@ const DateText = styled(Paragraph)`
 const Pastes: FC = () => {
   const [cookies, setCookie] = useCookies([POTATO_ID]);
   const [inputVal, setInputVal] = useState<string>('');
+  const [currPage, setCurrPage] = useState(1);
   const toasts = useToasts();
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
@@ -49,11 +52,11 @@ const Pastes: FC = () => {
     refetch: refetchPotato,
   } = useQuery(['potato', potatoId], getPotato);
   const {
-    data: pastes,
+    data: pastesData,
     isLoading: isLoadingPastes,
     isError: isErrorPastes,
     refetch: refetchPastes,
-  } = useQuery(['pastes', potatoId], getPastes);
+  } = useQuery(['pastes', potatoId, PAGE_SIZE, currPage], getPastes);
   const [mutatePaste, { isLoading: isCreatingPaste }] = useMutation(
     createPaste,
     { onSuccess: () => queryCache.invalidateQueries('pastes') }
@@ -174,14 +177,16 @@ const Pastes: FC = () => {
           flexGrow={1}
           flexBasis='auto'
           overflowY={
-            pastes !== undefined && pastes.length > 0 ? 'auto' : 'hidden'
+            pastesData?.pastes !== undefined && pastesData.pastes.length > 0
+              ? 'auto'
+              : 'hidden'
           }
           scrollBehavior='smooth'
           id='pastes-container'
         >
           <Stack spacing='major-1'>
-            {pastes !== undefined && pastes.length > 0 ? (
-              pastes.map((paste, index) => (
+            {pastesData && pastesData.numPastes > 0 ? (
+              pastesData.pastes.map((paste, index) => (
                 <Card key={paste.id}>
                   <Stack spacing='minor-2'>
                     <Input
@@ -206,6 +211,15 @@ const Pastes: FC = () => {
             )}
           </Stack>
         </Box>
+        {pastesData && pastesData.numPastes > 0 && (
+          <Pagination
+            alignX='center'
+            alignY='center'
+            currentPage={currPage}
+            onChangePage={(page) => setCurrPage(page)}
+            numberOfPages={Math.ceil(pastesData?.numPastes / PAGE_SIZE)}
+          />
+        )}
       </Stack>
     </PageContent>
   );
