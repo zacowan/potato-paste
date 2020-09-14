@@ -1,4 +1,5 @@
 import React, { FC, useState, useEffect } from 'react';
+import { useQuery } from 'react-query';
 import {
   PageContent,
   Stack,
@@ -12,7 +13,7 @@ import {
   Code,
   Divider,
   Link,
-  palette,
+  Spinner,
 } from 'bumbag';
 import styled from 'styled-components';
 import { useParams, useHistory } from 'react-router-dom';
@@ -20,6 +21,7 @@ import { useCookies } from 'react-cookie';
 import moment from 'moment';
 import { COOKIE_AGE, POTATO_ID } from '../utils/CookieTypes';
 import { Paste } from '../utils/PasteTypes';
+import { getPotato } from '../api';
 
 type PotatoParams = {
   potatoId: string;
@@ -37,9 +39,11 @@ const Pastes: FC = () => {
   const history = useHistory();
   const { potatoId } = useParams<PotatoParams>();
 
-  useEffect(() => {
-    setPastes([]);
-  }, []);
+  // Queries
+  const { data: potatoData, isLoading: isLoadingPotato } = useQuery(
+    ['potato', potatoId],
+    getPotato
+  );
 
   const handleInputSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -73,8 +77,16 @@ const Pastes: FC = () => {
     input.select();
   };
 
-  if (!!!cookies[POTATO_ID]) {
+  if (cookies[POTATO_ID] !== potatoId) {
     setCookie(POTATO_ID, potatoId, { maxAge: COOKIE_AGE });
+  }
+
+  if (isLoadingPotato) {
+    return (
+      <PageContent>
+        <Spinner alignX='center' size='large' />
+      </PageContent>
+    );
   }
 
   return (
@@ -90,8 +102,12 @@ const Pastes: FC = () => {
           <Stack>
             <Heading>Pastes</Heading>
             <Paragraph>
-              Pastes for potato <Code>{potatoId}</Code>.
+              Pastes for <Code>{potatoData?.nickname ?? potatoId}</Code> potato.
             </Paragraph>
+            <DateText>
+              Created{' '}
+              {moment(potatoData?.createdAt).format('h:mm a, MM/DD/YYYY')}.
+            </DateText>
             <Stack use='form' onSubmit={handleInputSubmit} spacing='minor-2'>
               <Input
                 value={inputVal}

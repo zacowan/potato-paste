@@ -1,0 +1,24 @@
+{
+  "name": "potato-paste",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start:dev": "concurrently \"cd server/functions && npm run serve\" \"cd client && npm start\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zacowan/potato-paste.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/zacowan/potato-paste/issues"
+  },
+  "homepage": "https://github.com/zacowan/potato-paste#readme",
+  "dependencies": {
+    "concurrently": "^5.3.0"
+  }
+}
