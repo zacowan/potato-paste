@@ -173,7 +173,9 @@ const Pastes: FC = () => {
         <Box
           flexGrow={1}
           flexBasis='auto'
-          overflowY='auto'
+          overflowY={
+            pastes !== undefined && pastes.length > 0 ? 'auto' : 'hidden'
+          }
           scrollBehavior='smooth'
           id='pastes-container'
         >
