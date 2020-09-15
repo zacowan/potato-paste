@@ -26,6 +26,7 @@ import { useCookies } from 'react-cookie';
 import moment from 'moment';
 import {
   COOKIE_AGE,
+  COOKIE_PATH,
   POTATO_HISTORY,
   PotatoHistory,
   HISTORY_SIZE,
@@ -114,7 +115,10 @@ const Pastes: FC = () => {
         nickname: potatoData?.nickname ?? 'Potato',
       });
       removeCookie(POTATO_HISTORY);
-      setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
+      setCookie(POTATO_HISTORY, newHistory, {
+        maxAge: COOKIE_AGE,
+        path: COOKIE_PATH,
+      });
     } else {
       // Create empty history
       const newHistory: PotatoHistory = [];
@@ -125,7 +129,10 @@ const Pastes: FC = () => {
         link: window.location.href,
         nickname: potatoData?.nickname ?? 'Potato',
       });
-      setCookie(POTATO_HISTORY, newHistory, { maxAge: COOKIE_AGE });
+      setCookie(POTATO_HISTORY, newHistory, {
+        maxAge: COOKIE_AGE,
+        path: COOKIE_PATH,
+      });
     }
     // eslint-disable-next-line
   }, [potatoData]);
@@ -139,7 +146,10 @@ const Pastes: FC = () => {
         nickname: potatoData?.nickname ?? 'Potato',
         visitedOn: Date.now(),
       };
-      setCookie(POTATO_FAVORITE, newFavorite, { maxAge: COOKIE_AGE });
+      setCookie(POTATO_FAVORITE, newFavorite, {
+        maxAge: COOKIE_AGE,
+        path: COOKIE_PATH,
+      });
     } else if (favoritePotato) {
       removeCookie(POTATO_FAVORITE);
     } else {
@@ -149,7 +159,10 @@ const Pastes: FC = () => {
         nickname: potatoData?.nickname ?? 'Potato',
         visitedOn: Date.now(),
       };
-      setCookie(POTATO_FAVORITE, newFavorite, { maxAge: COOKIE_AGE });
+      setCookie(POTATO_FAVORITE, newFavorite, {
+        maxAge: COOKIE_AGE,
+        path: COOKIE_PATH,
+      });
     }
   };
 
